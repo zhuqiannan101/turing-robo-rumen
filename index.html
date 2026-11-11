@@ -20,6 +20,8 @@ body{background:#f5f6fa;min-height:100vh;display:flex;flex-direction:column;alig
  padding:7px 18px;font-size:14.5px;font-weight:bold;cursor:pointer;font-family:inherit}
 .readbtn:active{transform:scale(.95)}
 .readbtn.reading{background:#42A5F5;color:#fff}
+.vbtn{background:linear-gradient(135deg,#3CB371,#26A69A)!important;box-shadow:0 4px 12px #3CB37155!important}
+.vhint{font-size:13px;color:#999;margin-top:6px}
 .sndbtn{position:fixed;top:14px;left:14px;z-index:99;width:44px;height:44px;border-radius:50%;border:none;
  background:#fff;box-shadow:0 4px 14px rgba(0,0,0,.18);cursor:pointer;font-size:19px}
 .menu{display:flex;gap:16px;margin:0 16px 20px;flex-wrap:wrap;justify-content:center;position:relative;z-index:5}
@@ -108,16 +110,19 @@ h2.res{font-size:30px;text-align:center;margin-bottom:2px}
   <div class="fb" id="fb"></div>
   <div class="acts" id="acts">
     <button class="btn ghost" onclick="showAns()">📖 看解析</button>
-    <button class="btn" onclick="next()">下一题 →</button>
+    <button class="btn" id="quizNextBtn" onclick="next()">下一题 →</button>
   </div>
  </div>
 </div>
 <div id="ans" class="hidden">
  <div class="card">
   <div class="topbar"><span class="plate" id="aPlate"></span><span class="idx" id="aIdx"></span></div>
-  <img class="aimg" id="aImg" alt="解析">
-  <div style="text-align:center"><span class="point" id="aPoint"></span></div>
-  <div style="text-align:center;margin-top:16px"><button class="btn" onclick="next()">下一题 →</button></div>
+  <div id="vidBox" style="margin-top:6px;display:none"></div>
+  <img class="aimg" id="aImg" alt="解析" style="display:none;margin-top:10px">
+  <div style="text-align:center" id="vidOpt"><button class="btn vbtn" id="vidBtn" onclick="playVid()">🎬 看这题的讲解视频</button>
+   <div class="vhint" style="margin-top:6px">老师录的专属讲解，看完再点下一题哦～</div></div>
+  <div style="text-align:center;margin-top:14px"><button class="btn" id="ansNextBtn" onclick="next()">下一题 →</button>
+   <div class="vhint" id="vidHint"></div></div>
  </div>
 </div>
 <div id="result" class="hidden">
@@ -138,7 +143,7 @@ h2.res{font-size:30px;text-align:center;margin-bottom:2px}
 </div>
 <button class="home-ic hidden" id="homeIc" onclick="goHome()">🏠</button>
 <script>
-const QUIZ=[{"plate": "单选", "color": "FF7043", "point": "造型切换", "ans": 2, "q": "img/rmm1_q.webp", "a": "img/rmm1_a.webp", "opts": ["A", "B", "C", "D"], "read": "绘本机器人有下面4个造型，它运行程序后会变成哪个造型？"}, {"plate": "单选", "color": "FF7043", "point": "移动 X 步", "ans": 1, "q": "img/rmm2_q.webp", "a": "img/rmm2_a.webp", "opts": ["A", "B", "C", "D"], "read": "小羊需要走到草垛旁吃草，它运行下图的程序后，一共移动了多少步？"}, {"plate": "单选", "color": "FF7043", "point": "左转/右转", "ans": 2, "q": "img/rmm3_q.webp", "a": "img/rmm3_a.webp", "opts": ["A", "B", "C", "D"], "read": "玩具小火车车头初始面向正左方，它运行下图程序后，车头面向的方向是？"}, {"plate": "单选", "color": "FF7043", "point": "播放声音", "ans": 3, "q": "img/rmm4_q.webp", "a": "img/rmm4_a.webp", "opts": ["A", "B", "C", "D"], "read": "下列哪段程序能够实现小鼓手播放声音鼓声，播放完毕后切换造型的效果？"}, {"plate": "单选", "color": "FF7043", "point": "区分使用控制类积木", "ans": 0, "q": "img/rmm5_q.webp", "a": "img/rmm5_a.webp", "opts": ["A", "B", "C", "D"], "read": "玩具挖掘机要不停地重复挖土的动作，应该使用下面哪个积木？"}, {"plate": "单选", "color": "FF7043", "point": "将大小设为/增加", "ans": 1, "q": "img/rmm6_q.webp", "a": "img/rmm6_a.webp", "opts": ["A", "B", "C", "D"], "read": "雪人的初始大小是40，下列哪个积木可以让它的大小变成70？"}, {"plate": "单选", "color": "FF7043", "point": "认读坐标", "ans": 2, "q": "img/rmm7_q.webp", "a": "img/rmm7_a.webp", "opts": ["A", "B", "C", "D"], "read": "舞台区如图所示，星星贴纸的坐标可能是多少？"}, {"plate": "单选", "color": "FF7043", "point": "碰到鼠标指针/舞台边缘/颜色", "ans": 3, "q": "img/rmm8_q.webp", "a": "img/rmm8_a.webp", "opts": ["A", "B", "C", "D"], "read": "下列哪段程序能够实现小松鼠持续移动，碰到松果就换成抱松果造型的效果？"}, {"plate": "单选", "color": "FF7043", "point": "区分【移到】和【滑行】", "ans": 0, "q": "img/rmm9_q.webp", "a": "img/rmm9_a.webp", "opts": ["A", "B", "C", "D"], "read": "下列哪个积木块一定可以让刚出炉的面包瞬间移到货架位置？"}, {"plate": "单选", "color": "FF7043", "point": "克隆", "ans": 3, "q": "img/rmm10_q.webp", "a": "img/rmm10_a.webp", "opts": ["A", "B", "C", "D"], "read": "小丑在马戏团表演抛球，球的程序如下图。运行程序后，舞台上能看到几个球？"}, {"plate": "单选", "color": "FF7043", "point": "造型切换", "ans": 2, "q": "img/rmy1_q.webp", "a": "img/rmy1_a.webp", "opts": ["A", "B", "C", "D"], "read": "小松鼠运行下面的程序，一共向前走了多少步？"}, {"plate": "单选", "color": "FF7043", "point": "坐标移动", "ans": 1, "q": "img/rmy2_q.webp", "a": "img/rmy2_a.webp", "opts": ["A", "B", "C", "D"], "read": "小鸭子的造型页和程序如下图，运行程序后小鸭子会变成哪个造型？"}, {"plate": "单选", "color": "FF7043", "point": "左转/右转", "ans": 3, "q": "img/rmy3_q.webp", "a": "img/rmy3_a.webp", "opts": ["A", "B", "C", "D"], "read": "舞台区和小火车的程序如下图所示，运行程序后，舞台区会变成什么样子？"}, {"plate": "单选", "color": "FF7043", "point": "将大小设为/增加", "ans": 0, "q": "img/rmy4_q.webp", "a": "img/rmy4_a.webp", "opts": ["A", "B", "C", "D"], "read": "西瓜现在的大小是50，运行下面哪个选项的程序，可以让它变成100？"}, {"plate": "单选", "color": "FF7043", "point": "区分【移到】和【滑行】", "ans": 1, "q": "img/rmy5_q.webp", "a": "img/rmy5_a.webp", "opts": ["A", "B", "C", "D"], "read": "小蜗牛想要慢慢爬到叶子上，应该使用下面哪个积木？"}, {"plate": "单选", "color": "FF7043", "point": "播放声音", "ans": 0, "q": "img/rmy6_q.webp", "a": "img/rmy6_a.webp", "opts": ["A", "B", "C", "D"], "read": "小狗要先完整播放叫声3次后，再摇尾巴，下面哪段程序能实现这个顺序？"}, {"plate": "单选", "color": "FF7043", "point": "重复执行/重复执行 X 次", "ans": 2, "q": "img/rmy7_q.webp", "a": "img/rmy7_a.webp", "opts": ["A", "B", "C", "D"], "read": "小猴子切换造型就可以实现上下跳动的效果，它想要一直不停地上下跳，应该使用下面哪个程序？"}, {"plate": "单选", "color": "FF7043", "point": "认读坐标", "ans": 3, "q": "img/rmy8_q.webp", "a": "img/rmy8_a.webp", "opts": ["A", "B", "C", "D"], "read": "小蜜蜂在花园里的位置如下图，它的坐标是多少？"}, {"plate": "单选", "color": "FF7043", "point": "碰到鼠标指针/舞台边缘/颜色", "ans": 0, "q": "img/rmy9_q.webp", "a": "img/rmy9_a.webp", "opts": ["A", "B", "C", "D"], "read": "小熊想要编写程序，让自己碰到蜂蜜罐就会变大，下面哪段程序能实现这个效果？"}, {"plate": "单选", "color": "FF7043", "point": "克隆", "ans": 1, "q": "img/rmy10_q.webp", "a": "img/rmy10_a.webp", "opts": ["A", "B", "C", "D"], "read": "草莓的程序和舞台区如下图，运行程序后，舞台区会变成什么样子？"}, {"plate": "判断", "color": "EC407A", "point": "循环结构", "ans": 0, "q": "img/rmm11_q.webp", "a": "img/rmm11_a.webp", "opts": ["正确", "错误"], "read": "钟楼里的齿轮运行下图程序后，一共会旋转360度。"}, {"plate": "判断", "color": "EC407A", "point": "造型切换", "ans": 0, "q": "img/rmm12_q.webp", "a": "img/rmm12_a.webp", "opts": ["正确", "错误"], "read": "天气图标的造型页和程序如下图所示，运行程序后，天气图标的造型是云朵。"}, {"plate": "判断", "color": "EC407A", "point": "角色方向", "ans": 0, "q": "img/rmm13_q.webp", "a": "img/rmm13_a.webp", "opts": ["正确", "错误"], "read": "船帆初始面向正右方，也就是面向90方向，运行下图程序后，它会面向正左方，也就是面向负90方向。"}, {"plate": "判断", "color": "EC407A", "point": "简单判断", "ans": 1, "q": "img/rmm14_q.webp", "a": "img/rmm14_a.webp", "opts": ["正确", "错误"], "read": "舞台区如下图1所示，印章角色运行下图2程序后，会将舞台区变为下图3的样子。"}, {"plate": "判断", "color": "EC407A", "point": "重复执行/重复执行 X 次", "ans": 1, "q": "img/rmm15_q.webp", "a": "img/rmm15_a.webp", "opts": ["正确", "错误"], "read": "消防车运行下图程序后，会一直重复鸣笛，不会停下来。"}, {"plate": "判断", "color": "EC407A", "point": "坐标设为/增加", "ans": 1, "q": "img/rmm16_q.webp", "a": "img/rmm16_a.webp", "opts": ["正确", "错误"], "read": "雪橇原来的坐标是0逗100，运行下图程序后，它会移到0逗50。"}, {"plate": "判断", "color": "EC407A", "point": "将大小设为/增加", "ans": 1, "q": "img/rmm17_q.webp", "a": "img/rmm17_a.webp", "opts": ["正确", "错误"], "read": "向日葵现在的大小是30，运行下图程序后，它的大小会变成80。"}, {"plate": "判断", "color": "EC407A", "point": "随机数", "ans": 0, "q": "img/rmm18_q.webp", "a": "img/rmm18_a.webp", "opts": ["正确", "错误"], "read": "糖果机运行下图程序后，运行后的糖果编号一定在1到5之间。"}, {"plate": "判断", "color": "EC407A", "point": "程序并行", "ans": 1, "q": "img/rmm19_q.webp", "a": "img/rmm19_a.webp", "opts": ["正确", "错误"], "read": "宠物医院里两只小狗的程序如下图，点击绿旗后，它们会同时开始切换造型。"}, {"plate": "判断", "color": "EC407A", "point": "克隆", "ans": 1, "q": "img/rmm20_q.webp", "a": "img/rmm20_a.webp", "opts": ["正确", "错误"], "read": "营地篝火晚上，火星运行下图程序后，会有火星往上飘，还会有一个火星一直停在火堆里不动。"}, {"plate": "判断", "color": "EC407A", "point": "循环结构", "ans": 0, "q": "img/rmy11_q.webp", "a": "img/rmy11_a.webp", "opts": ["正确", "错误"], "read": "小企鹅运行下图程序，会先等2秒再向前移动。"}, {"plate": "判断", "color": "EC407A", "point": "造型切换", "ans": 1, "q": "img/rmy12_q.webp", "a": "img/rmy12_a.webp", "opts": ["正确", "错误"], "read": "小青蛙的大小原来是100，运行下图程序后会变成150。"}, {"plate": "判断", "color": "EC407A", "point": "角色方向", "ans": 0, "q": "img/rmy13_q.webp", "a": "img/rmy13_a.webp", "opts": ["正确", "错误"], "read": "小鸟运行下图程序后，会向上移动。"}, {"plate": "判断", "color": "EC407A", "point": "简单判断", "ans": 1, "q": "img/rmy14_q.webp", "a": "img/rmy14_a.webp", "opts": ["正确", "错误"], "read": "脚印角色运行下图程序后，在舞台区可以看到4个脚印。"}, {"plate": "判断", "color": "EC407A", "point": "重复执行/重复执行 X 次", "ans": 1, "q": "img/rmy15_q.webp", "a": "img/rmy15_a.webp", "opts": ["正确", "错误"], "read": "小飞机运行下图程序后，会向上飞。"}, {"plate": "判断", "color": "EC407A", "point": "坐标设为/增加", "ans": 1, "q": "img/rmy16_q.webp", "a": "img/rmy16_a.webp", "opts": ["正确", "错误"], "read": "小铃铛和小老鼠的程序如下图，点击绿旗后，小老鼠会说：你好"}, {"plate": "判断", "color": "EC407A", "point": "将大小设为/增加", "ans": 1, "q": "img/rmy17_q.webp", "a": "img/rmy17_a.webp", "opts": ["正确", "错误"], "read": "小花运行下图程序后，会变成2造型。"}, {"plate": "判断", "color": "EC407A", "point": "随机数", "ans": 1, "q": "img/rmy18_q.webp", "a": "img/rmy18_a.webp", "opts": ["正确", "错误"], "read": "小鱼运行下图程序后，可能停在x坐标为300的位置。"}, {"plate": "判断", "color": "EC407A", "point": "程序并行", "ans": 0, "q": "img/rmy19_q.webp", "a": "img/rmy19_a.webp", "opts": ["正确", "错误"], "read": "小乌龟和小兔子的程序如下图，点击绿旗后，它们会同时开始移动。"}, {"plate": "判断", "color": "EC407A", "point": "克隆", "ans": 0, "q": "img/rmy20_q.webp", "a": "img/rmy20_a.webp", "opts": ["正确", "错误"], "read": "雪花的程序如下图，它运行程序后，只有克隆体向下移动，本体停在原地。"}];
+const QUIZ=[{"plate": "单选", "color": "FF7043", "point": "造型切换", "ans": 2, "q": "img/rmm1_q.webp", "a": "img/rmm1_a.webp", "opts": ["A", "B", "C", "D"], "read": "绘本机器人有下面4个造型，它运行程序后会变成哪个造型？", "vid": "vid/m01.mp4"}, {"plate": "单选", "color": "FF7043", "point": "移动 X 步", "ans": 1, "q": "img/rmm2_q.webp", "a": "img/rmm2_a.webp", "opts": ["A", "B", "C", "D"], "read": "小羊需要走到草垛旁吃草，它运行下图的程序后，一共移动了多少步？", "vid": "vid/m02.mp4"}, {"plate": "单选", "color": "FF7043", "point": "左转/右转", "ans": 2, "q": "img/rmm3_q.webp", "a": "img/rmm3_a.webp", "opts": ["A", "B", "C", "D"], "read": "玩具小火车车头初始面向正左方，它运行下图程序后，车头面向的方向是？", "vid": "vid/m03.mp4"}, {"plate": "单选", "color": "FF7043", "point": "播放声音", "ans": 3, "q": "img/rmm4_q.webp", "a": "img/rmm4_a.webp", "opts": ["A", "B", "C", "D"], "read": "下列哪段程序能够实现小鼓手播放声音鼓声，播放完毕后切换造型的效果？", "vid": "vid/m04.mp4"}, {"plate": "单选", "color": "FF7043", "point": "区分使用控制类积木", "ans": 0, "q": "img/rmm5_q.webp", "a": "img/rmm5_a.webp", "opts": ["A", "B", "C", "D"], "read": "玩具挖掘机要不停地重复挖土的动作，应该使用下面哪个积木？", "vid": "vid/m05.mp4"}, {"plate": "单选", "color": "FF7043", "point": "将大小设为/增加", "ans": 1, "q": "img/rmm6_q.webp", "a": "img/rmm6_a.webp", "opts": ["A", "B", "C", "D"], "read": "雪人的初始大小是40，下列哪个积木可以让它的大小变成70？", "vid": "vid/m06.mp4"}, {"plate": "单选", "color": "FF7043", "point": "认读坐标", "ans": 2, "q": "img/rmm7_q.webp", "a": "img/rmm7_a.webp", "opts": ["A", "B", "C", "D"], "read": "舞台区如图所示，星星贴纸的坐标可能是多少？", "vid": "vid/m07.mp4"}, {"plate": "单选", "color": "FF7043", "point": "碰到鼠标指针/舞台边缘/颜色", "ans": 3, "q": "img/rmm8_q.webp", "a": "img/rmm8_a.webp", "opts": ["A", "B", "C", "D"], "read": "下列哪段程序能够实现小松鼠持续移动，碰到松果就换成抱松果造型的效果？", "vid": "vid/m08.mp4"}, {"plate": "单选", "color": "FF7043", "point": "区分【移到】和【滑行】", "ans": 0, "q": "img/rmm9_q.webp", "a": "img/rmm9_a.webp", "opts": ["A", "B", "C", "D"], "read": "下列哪个积木块一定可以让刚出炉的面包瞬间移到货架位置？", "vid": "vid/m09.mp4"}, {"plate": "单选", "color": "FF7043", "point": "克隆", "ans": 3, "q": "img/rmm10_q.webp", "a": "img/rmm10_a.webp", "opts": ["A", "B", "C", "D"], "read": "小丑在马戏团表演抛球，球的程序如下图。运行程序后，舞台上能看到几个球？", "vid": "vid/m10.mp4"}, {"plate": "单选", "color": "FF7043", "point": "造型切换", "ans": 2, "q": "img/rmy1_q.webp", "a": "img/rmy1_a.webp", "opts": ["A", "B", "C", "D"], "read": "小松鼠运行下面的程序，一共向前走了多少步？", "vid": "vid/y01.mp4"}, {"plate": "单选", "color": "FF7043", "point": "坐标移动", "ans": 1, "q": "img/rmy2_q.webp", "a": "img/rmy2_a.webp", "opts": ["A", "B", "C", "D"], "read": "小鸭子的造型页和程序如下图，运行程序后小鸭子会变成哪个造型？", "vid": "vid/y02.mp4"}, {"plate": "单选", "color": "FF7043", "point": "左转/右转", "ans": 3, "q": "img/rmy3_q.webp", "a": "img/rmy3_a.webp", "opts": ["A", "B", "C", "D"], "read": "舞台区和小火车的程序如下图所示，运行程序后，舞台区会变成什么样子？", "vid": "vid/y03.mp4"}, {"plate": "单选", "color": "FF7043", "point": "将大小设为/增加", "ans": 0, "q": "img/rmy4_q.webp", "a": "img/rmy4_a.webp", "opts": ["A", "B", "C", "D"], "read": "西瓜现在的大小是50，运行下面哪个选项的程序，可以让它变成100？", "vid": "vid/y04.mp4"}, {"plate": "单选", "color": "FF7043", "point": "区分【移到】和【滑行】", "ans": 1, "q": "img/rmy5_q.webp", "a": "img/rmy5_a.webp", "opts": ["A", "B", "C", "D"], "read": "小蜗牛想要慢慢爬到叶子上，应该使用下面哪个积木？", "vid": "vid/y05.mp4"}, {"plate": "单选", "color": "FF7043", "point": "播放声音", "ans": 0, "q": "img/rmy6_q.webp", "a": "img/rmy6_a.webp", "opts": ["A", "B", "C", "D"], "read": "小狗要先完整播放叫声3次后，再摇尾巴，下面哪段程序能实现这个顺序？", "vid": "vid/y06.mp4"}, {"plate": "单选", "color": "FF7043", "point": "重复执行/重复执行 X 次", "ans": 2, "q": "img/rmy7_q.webp", "a": "img/rmy7_a.webp", "opts": ["A", "B", "C", "D"], "read": "小猴子切换造型就可以实现上下跳动的效果，它想要一直不停地上下跳，应该使用下面哪个程序？", "vid": "vid/y07.mp4"}, {"plate": "单选", "color": "FF7043", "point": "认读坐标", "ans": 3, "q": "img/rmy8_q.webp", "a": "img/rmy8_a.webp", "opts": ["A", "B", "C", "D"], "read": "小蜜蜂在花园里的位置如下图，它的坐标是多少？", "vid": "vid/y08.mp4"}, {"plate": "单选", "color": "FF7043", "point": "碰到鼠标指针/舞台边缘/颜色", "ans": 0, "q": "img/rmy9_q.webp", "a": "img/rmy9_a.webp", "opts": ["A", "B", "C", "D"], "read": "小熊想要编写程序，让自己碰到蜂蜜罐就会变大，下面哪段程序能实现这个效果？", "vid": "vid/y09.mp4"}, {"plate": "单选", "color": "FF7043", "point": "克隆", "ans": 1, "q": "img/rmy10_q.webp", "a": "img/rmy10_a.webp", "opts": ["A", "B", "C", "D"], "read": "草莓的程序和舞台区如下图，运行程序后，舞台区会变成什么样子？", "vid": "vid/y10.mp4"}, {"plate": "判断", "color": "EC407A", "point": "循环结构", "ans": 0, "q": "img/rmm11_q.webp", "a": "img/rmm11_a.webp", "opts": ["正确", "错误"], "read": "钟楼里的齿轮运行下图程序后，一共会旋转360度。", "vid": "vid/m11.mp4"}, {"plate": "判断", "color": "EC407A", "point": "造型切换", "ans": 0, "q": "img/rmm12_q.webp", "a": "img/rmm12_a.webp", "opts": ["正确", "错误"], "read": "天气图标的造型页和程序如下图所示，运行程序后，天气图标的造型是云朵。", "vid": "vid/m12.mp4"}, {"plate": "判断", "color": "EC407A", "point": "角色方向", "ans": 0, "q": "img/rmm13_q.webp", "a": "img/rmm13_a.webp", "opts": ["正确", "错误"], "read": "船帆初始面向正右方，也就是面向90方向，运行下图程序后，它会面向正左方，也就是面向负90方向。", "vid": "vid/m13.mp4"}, {"plate": "判断", "color": "EC407A", "point": "简单判断", "ans": 1, "q": "img/rmm14_q.webp", "a": "img/rmm14_a.webp", "opts": ["正确", "错误"], "read": "舞台区如下图1所示，印章角色运行下图2程序后，会将舞台区变为下图3的样子。", "vid": "vid/m14.mp4"}, {"plate": "判断", "color": "EC407A", "point": "重复执行/重复执行 X 次", "ans": 1, "q": "img/rmm15_q.webp", "a": "img/rmm15_a.webp", "opts": ["正确", "错误"], "read": "消防车运行下图程序后，会一直重复鸣笛，不会停下来。", "vid": "vid/m15.mp4"}, {"plate": "判断", "color": "EC407A", "point": "坐标设为/增加", "ans": 1, "q": "img/rmm16_q.webp", "a": "img/rmm16_a.webp", "opts": ["正确", "错误"], "read": "雪橇原来的坐标是0逗100，运行下图程序后，它会移到0逗50。", "vid": "vid/m16.mp4"}, {"plate": "判断", "color": "EC407A", "point": "将大小设为/增加", "ans": 1, "q": "img/rmm17_q.webp", "a": "img/rmm17_a.webp", "opts": ["正确", "错误"], "read": "向日葵现在的大小是30，运行下图程序后，它的大小会变成80。", "vid": "vid/m17.mp4"}, {"plate": "判断", "color": "EC407A", "point": "随机数", "ans": 0, "q": "img/rmm18_q.webp", "a": "img/rmm18_a.webp", "opts": ["正确", "错误"], "read": "糖果机运行下图程序后，运行后的糖果编号一定在1到5之间。", "vid": "vid/m18.mp4"}, {"plate": "判断", "color": "EC407A", "point": "程序并行", "ans": 1, "q": "img/rmm19_q.webp", "a": "img/rmm19_a.webp", "opts": ["正确", "错误"], "read": "宠物医院里两只小狗的程序如下图，点击绿旗后，它们会同时开始切换造型。", "vid": "vid/m19.mp4"}, {"plate": "判断", "color": "EC407A", "point": "克隆", "ans": 1, "q": "img/rmm20_q.webp", "a": "img/rmm20_a.webp", "opts": ["正确", "错误"], "read": "营地篝火晚上，火星运行下图程序后，会有火星往上飘，还会有一个火星一直停在火堆里不动。", "vid": "vid/m20.mp4"}, {"plate": "判断", "color": "EC407A", "point": "循环结构", "ans": 0, "q": "img/rmy11_q.webp", "a": "img/rmy11_a.webp", "opts": ["正确", "错误"], "read": "小企鹅运行下图程序，会先等2秒再向前移动。", "vid": "vid/y11.mp4"}, {"plate": "判断", "color": "EC407A", "point": "造型切换", "ans": 1, "q": "img/rmy12_q.webp", "a": "img/rmy12_a.webp", "opts": ["正确", "错误"], "read": "小青蛙的大小原来是100，运行下图程序后会变成150。", "vid": "vid/y12.mp4"}, {"plate": "判断", "color": "EC407A", "point": "角色方向", "ans": 0, "q": "img/rmy13_q.webp", "a": "img/rmy13_a.webp", "opts": ["正确", "错误"], "read": "小鸟运行下图程序后，会向上移动。", "vid": "vid/y13.mp4"}, {"plate": "判断", "color": "EC407A", "point": "简单判断", "ans": 1, "q": "img/rmy14_q.webp", "a": "img/rmy14_a.webp", "opts": ["正确", "错误"], "read": "脚印角色运行下图程序后，在舞台区可以看到4个脚印。", "vid": "vid/y14.mp4"}, {"plate": "判断", "color": "EC407A", "point": "重复执行/重复执行 X 次", "ans": 1, "q": "img/rmy15_q.webp", "a": "img/rmy15_a.webp", "opts": ["正确", "错误"], "read": "小飞机运行下图程序后，会向上飞。", "vid": "vid/y15.mp4"}, {"plate": "判断", "color": "EC407A", "point": "坐标设为/增加", "ans": 1, "q": "img/rmy16_q.webp", "a": "img/rmy16_a.webp", "opts": ["正确", "错误"], "read": "小铃铛和小老鼠的程序如下图，点击绿旗后，小老鼠会说：你好", "vid": "vid/y16.mp4"}, {"plate": "判断", "color": "EC407A", "point": "将大小设为/增加", "ans": 1, "q": "img/rmy17_q.webp", "a": "img/rmy17_a.webp", "opts": ["正确", "错误"], "read": "小花运行下图程序后，会变成2造型。", "vid": "vid/y17.mp4"}, {"plate": "判断", "color": "EC407A", "point": "随机数", "ans": 1, "q": "img/rmy18_q.webp", "a": "img/rmy18_a.webp", "opts": ["正确", "错误"], "read": "小鱼运行下图程序后，可能停在x坐标为300的位置。", "vid": "vid/y18.mp4"}, {"plate": "判断", "color": "EC407A", "point": "程序并行", "ans": 0, "q": "img/rmy19_q.webp", "a": "img/rmy19_a.webp", "opts": ["正确", "错误"], "read": "小乌龟和小兔子的程序如下图，点击绿旗后，它们会同时开始移动。", "vid": "vid/y19.mp4"}, {"plate": "判断", "color": "EC407A", "point": "克隆", "ans": 0, "q": "img/rmy20_q.webp", "a": "img/rmy20_a.webp", "opts": ["正确", "错误"], "read": "雪花的程序如下图，它运行程序后，只有克隆体向下移动，本体停在原地。", "vid": "vid/y20.mp4"}];
 const SFX={"coin": "sfx/coin.mp3", "double": "sfx/double.mp3", "triple": "sfx/triple.mp3", "quadra": "sfx/quadra.mp3", "penta": "sfx/penta.mp3", "legendary": "sfx/legendary.mp3", "welcome": "sfx/welcome.mp3", "fail": "sfx/fail.mp3"};
 const KEY="robo_rm_v2";
 const GROUP="\u3010RoboRAVE\u5165\u95e8\u7ec4\u5237\u9898\u3011";
@@ -154,7 +159,7 @@ function start(mode){
  if(!kidName){alert("请先在上方输入孩子的姓名哦～");try{document.getElementById("nameIn").focus()}catch(e){};return}
  if(mode==="wrong"){order=shuffled([...wrong]).slice(0,15);if(!order.length){alert("错题本是空的，太棒了！🎉");return}}
  else order=shuffled([...QUIZ.keys()]).slice(0,15);
- cur=0;ansMap={};coins=0;combo=0;document.getElementById("coinN").textContent="0";
+ cur=0;ansMap={};coins=0;combo=0;videoDone=new Set();document.getElementById("coinN").textContent="0";
  show(["quiz"]);render();
 }
 function show(ids){for(const id of["home","quiz","ans","result"])document.getElementById(id).classList.toggle("hidden",!ids.includes(id));
@@ -180,6 +185,9 @@ function render(){
   fb.innerHTML=ok?`${PRAISE[Math.floor(Math.random()*PRAISE.length)]}${combo>=3?`<span class="combo">🔥 连对 ${combo} 题！</span>`:""}<span style="float:right">答对 +3 金币</span>`
    :`${CHEER[Math.floor(Math.random()*CHEER.length)]}<span style="float:right">正确答案：${q.opts[q.ans]}</span>`;
   document.getElementById("acts").style.display="flex";
+   const qnb=document.getElementById("quizNextBtn");
+   if(qnb){if(ansMap[cur]!==q.ans&&q.vid){qnb.textContent="看讲解进入下一题";qnb.style.background="linear-gradient(135deg,#3CB371,#26A69A)"}
+     else{qnb.textContent="下一题 →";qnb.style.background=""}}
  }else{fb.className="fb";document.getElementById("acts").style.display="none"}
 }
 function pick(li){
@@ -197,12 +205,46 @@ function showAns(){
  const pEl=document.getElementById("aPlate");
  pEl.textContent=q.plate;pEl.style.background="#"+q.color;
  document.getElementById("aIdx").textContent=`第 ${cur+1} / ${order.length} 题`;
- document.getElementById("aImg").src=q.a;
- document.getElementById("aPoint").textContent="🎯 考点："+q.point;
+ stopSpeak();
+ const vb=document.getElementById("vidBox");vb.style.display="none";vb.innerHTML="";vb.dataset.src="";
+ const nb=document.getElementById("ansNextBtn");
+ const vo=document.getElementById("vidOpt");
+ const hint=document.getElementById("vidHint");
+ const im=document.getElementById("aImg");
+ const wrongAns=ansMap[cur]!==undefined&&ansMap[cur]!==q.ans;
  show(["ans"]);
+ nb.disabled=false;nb.style.opacity="1";nb.textContent="下一题 →";
+ if(wrongAns&&q.vid){
+   im.style.display="none";
+   if(vo)vo.style.display="none";
+   if(hint)hint.textContent="👀 看完讲解视频才能进入下一题哦";
+   nb.disabled=true;nb.style.opacity=".45";nb.textContent="看完视频才能进入下一题 👀";
+   playVid();
+   const vd=vb.querySelector("video");
+   const unlock=()=>{videoDone.add(order[cur]);nb.disabled=false;nb.style.opacity="1";nb.textContent="下一题 →";
+     if(hint)hint.textContent="✅ 讲解看完啦，记住这个知识点！"};
+   if(vd){vd.muted=false;vd.onended=unlock;
+     vd.onerror=()=>{videoDone.add(order[cur]);nb.disabled=false;nb.style.opacity="1";nb.textContent="下一题 →";
+       if(hint)hint.textContent="⚠️ 视频加载失败，先继续做下一题吧～"};}
+   else unlock();
+ }else if(!q.vid){
+   if(vo)vo.style.display="none";
+   if(im&&q.a){im.src=q.a;im.style.display="block"}
+   if(hint)hint.textContent="📖 图文解析";
+ }else{
+   im.style.display="none";
+   if(vo){vo.style.display="block";
+     const vb2=document.getElementById("vidBtn");
+     if(vb2)vb2.textContent="🎬 看这题的讲解视频";}
+   if(hint)hint.textContent="";
+ }
 }
 function next(){
  stopSpeak();
+ if(ansMap[cur]!==undefined&&ansMap[cur]!==QUIZ[order[cur]].ans&&QUIZ[order[cur]].vid&&!videoDone.has(order[cur])){
+   showAns();return;
+ }
+ const vb=document.getElementById("vidBox");vb.style.display="none";vb.innerHTML="";vb.dataset.src="";
  cur++;
  if(cur>=order.length){result();return}
  if(document.getElementById("quiz").classList.contains("hidden"))show(["quiz"]);
@@ -297,6 +339,19 @@ function readQ(){
  u.onend=()=>b.classList.remove("reading");
  b.classList.add("reading");
  speechSynthesis.speak(u);
+}
+
+
+// ---------- 讲解视频 ----------
+let videoDone=new Set();
+function playVid(){
+ const q=QUIZ[order[cur]];
+ stopSpeak();
+ const box=document.getElementById("vidBox");
+ if(box.style.display==="block"&&box.dataset.src===q.vid){box.style.display="none";return}
+ box.dataset.src=q.vid;box.style.display="block";
+ box.innerHTML=`<video controls playsinline autoplay style="width:100%;border-radius:14px;box-shadow:0 4px 14px rgba(0,0,0,.15)" src="${q.vid}"></video>`;
+ try{box.scrollIntoView({behavior:"smooth",block:"center"})}catch(e){}
 }
 
 renderProg();renderName();
